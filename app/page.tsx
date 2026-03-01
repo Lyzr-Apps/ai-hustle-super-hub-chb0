@@ -3,15 +3,6 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { callAIAgent } from '@/lib/aiAgent'
 import { cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
 import { FiZap, FiStar, FiDollarSign, FiTrendingUp, FiTrash2, FiRefreshCw, FiChevronDown, FiChevronUp, FiAlertCircle, FiActivity } from 'react-icons/fi'
 
 const AGENT_ID = '69a387d25d446100f182a997'
@@ -26,36 +17,6 @@ interface HustleData {
   monthly_income_max: number
 }
 
-const SAMPLE_HUSTLES: HustleData[] = [
-  {
-    hustle_name: 'AI Content Repurposing Service',
-    description: 'Transform long-form content like podcasts and webinars into social media posts, blog articles, and newsletters using AI tools. Low barrier to entry with high demand from content creators and businesses.',
-    difficulty_rating: 2,
-    startup_cost_min: 50,
-    startup_cost_max: 200,
-    monthly_income_min: 800,
-    monthly_income_max: 2500,
-  },
-  {
-    hustle_name: 'AI-Powered Resume Optimization',
-    description: 'Use AI to analyze and rewrite resumes for job seekers, optimizing for ATS systems and specific job postings. High volume potential with recurring clients.',
-    difficulty_rating: 1,
-    startup_cost_min: 20,
-    startup_cost_max: 100,
-    monthly_income_min: 500,
-    monthly_income_max: 1500,
-  },
-  {
-    hustle_name: 'Custom AI Chatbot Development',
-    description: 'Build custom AI chatbots for small businesses using no-code and low-code platforms. Businesses increasingly need 24/7 customer support automation.',
-    difficulty_rating: 4,
-    startup_cost_min: 200,
-    startup_cost_max: 800,
-    monthly_income_min: 2000,
-    monthly_income_max: 6000,
-  },
-]
-
 function generateId(): string {
   return 'sess-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
@@ -67,9 +28,9 @@ function getDifficultyLabel(value: number): string {
 }
 
 function getDifficultyColor(value: number): string {
-  if (value <= 33) return 'text-green-600'
-  if (value <= 66) return 'text-amber-600'
-  return 'text-red-500'
+  if (value <= 33) return '#16a34a'
+  if (value <= 66) return '#d97706'
+  return '#ef4444'
 }
 
 function formatCurrency(amount: number | undefined | null): string {
@@ -89,161 +50,185 @@ function parseHustleData(data: unknown): HustleData | null {
   const name = parsed?.hustle_name
   if (!name || typeof name !== 'string') return null
   return {
-    hustle_name: String(parsed?.hustle_name ?? ''),
-    description: String(parsed?.description ?? ''),
-    difficulty_rating: Number(parsed?.difficulty_rating ?? 0),
-    startup_cost_min: Number(parsed?.startup_cost_min ?? 0),
-    startup_cost_max: Number(parsed?.startup_cost_max ?? 0),
-    monthly_income_min: Number(parsed?.monthly_income_min ?? 0),
-    monthly_income_max: Number(parsed?.monthly_income_max ?? 0),
+    hustle_name: String(parsed.hustle_name ?? ''),
+    description: String(parsed.description ?? ''),
+    difficulty_rating: Number(parsed.difficulty_rating ?? 0),
+    startup_cost_min: Number(parsed.startup_cost_min ?? 0),
+    startup_cost_max: Number(parsed.startup_cost_max ?? 0),
+    monthly_income_min: Number(parsed.monthly_income_min ?? 0),
+    monthly_income_max: Number(parsed.monthly_income_max ?? 0),
   }
-}
-
-function renderMarkdown(text: string) {
-  if (!text) return null
-  return (
-    <div className="space-y-2">
-      {text.split('\n').map((line, i) => {
-        if (line.startsWith('### ')) return <h4 key={i} className="font-semibold text-sm mt-3 mb-1">{line.slice(4)}</h4>
-        if (line.startsWith('## ')) return <h3 key={i} className="font-semibold text-base mt-3 mb-1">{line.slice(3)}</h3>
-        if (line.startsWith('# ')) return <h2 key={i} className="font-bold text-lg mt-4 mb-2">{line.slice(2)}</h2>
-        if (line.startsWith('- ') || line.startsWith('* ')) return <li key={i} className="ml-4 list-disc text-sm">{formatInline(line.slice(2))}</li>
-        if (/^\d+\.\s/.test(line)) return <li key={i} className="ml-4 list-decimal text-sm">{formatInline(line.replace(/^\d+\.\s/, ''))}</li>
-        if (!line.trim()) return <div key={i} className="h-1" />
-        return <p key={i} className="text-sm leading-relaxed">{formatInline(line)}</p>
-      })}
-    </div>
-  )
-}
-
-function formatInline(text: string) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  if (parts.length === 1) return text
-  return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className="font-semibold">{part}</strong> : part)
 }
 
 function StarRating({ rating }: { rating: number }) {
   const stars = Math.max(0, Math.min(5, Math.round(rating || 0)))
   return (
-    <div className="flex items-center gap-0.5">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
       {[1, 2, 3, 4, 5].map((s) => (
         <FiStar
           key={s}
-          className={cn('w-5 h-5 transition-colors', s <= stars ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/30')}
-          style={s <= stars ? { fill: 'currentColor' } : {}}
+          style={{
+            width: '18px',
+            height: '18px',
+            color: s <= stars ? '#f59e0b' : '#d1d5db',
+            fill: s <= stars ? '#f59e0b' : 'none',
+          }}
         />
       ))}
-      <span className="ml-2 text-sm text-muted-foreground font-medium">{stars}/5</span>
+      <span style={{ marginLeft: '8px', fontSize: '13px', color: '#78716c', fontWeight: 500 }}>{stars}/5</span>
     </div>
   )
 }
 
 function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/50 backdrop-blur-sm border border-white/30 px-4 py-3">
-      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary">{icon}</div>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      borderRadius: '12px',
+      backgroundColor: 'rgba(255,255,255,0.5)',
+      backdropFilter: 'blur(8px)',
+      border: '1px solid rgba(255,255,255,0.3)',
+      padding: '12px 16px',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '36px',
+        height: '36px',
+        borderRadius: '8px',
+        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+        color: '#ea580c',
+      }}>{icon}</div>
       <div>
-        <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">{label}</p>
-        <p className="text-sm font-semibold text-foreground">{value}</p>
+        <p style={{ fontSize: '11px', color: '#78716c', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{label}</p>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: '#292524', margin: 0 }}>{value}</p>
       </div>
     </div>
   )
 }
 
-function LoadingSkeleton() {
+function SkeletonLoader() {
   return (
-    <Card className="backdrop-blur-[16px] bg-white/75 border border-white/20 shadow-lg overflow-hidden">
-      <CardHeader className="p-6 pb-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-7 w-3/5 rounded-lg" />
-          <Skeleton className="h-6 w-20 rounded-full" />
-        </div>
-      </CardHeader>
-      <CardContent className="p-6 pt-0 space-y-5">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-full rounded" />
-          <Skeleton className="h-4 w-4/5 rounded" />
-          <Skeleton className="h-4 w-3/5 rounded" />
-        </div>
-        <Skeleton className="h-5 w-32 rounded" />
-        <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-16 rounded-xl" />
-          <Skeleton className="h-16 rounded-xl" />
-        </div>
-      </CardContent>
-    </Card>
+    <div style={{
+      borderRadius: '14px',
+      backgroundColor: 'rgba(255,255,255,0.75)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid rgba(255,255,255,0.2)',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+      padding: '24px',
+      overflow: 'hidden',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ height: '24px', width: '60%', backgroundColor: '#e7e5e4', borderRadius: '8px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '24px', width: '60px', backgroundColor: '#e7e5e4', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+        <div style={{ height: '14px', width: '100%', backgroundColor: '#e7e5e4', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '14px', width: '80%', backgroundColor: '#e7e5e4', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '14px', width: '60%', backgroundColor: '#e7e5e4', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+      </div>
+      <div style={{ height: '20px', width: '120px', backgroundColor: '#e7e5e4', borderRadius: '4px', marginBottom: '12px', animation: 'pulse 1.5s infinite' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ height: '60px', backgroundColor: '#e7e5e4', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '60px', backgroundColor: '#e7e5e4', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />
+      </div>
+    </div>
   )
 }
 
-function HustleCard({ hustle, index, total, expanded, onToggle }: { hustle: HustleData; index: number; total: number; expanded?: boolean; onToggle?: () => void }) {
-  const isCompact = onToggle !== undefined
+function HustleCard({ hustle, index, total, isCompact, expanded, onToggle }: {
+  hustle: HustleData
+  index: number
+  total: number
+  isCompact?: boolean
+  expanded?: boolean
+  onToggle?: () => void
+}) {
   return (
-    <Card className={cn('backdrop-blur-[16px] bg-white/75 border border-white/20 shadow-lg overflow-hidden transition-all duration-500', !isCompact && 'animate-in fade-in slide-in-from-bottom-4')}>
-      <CardHeader className={cn('pb-3', isCompact ? 'p-4' : 'p-6')}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Badge variant="secondary" className="shrink-0 bg-primary/10 text-primary border-primary/20 font-semibold text-xs">
-              #{total - index}
-            </Badge>
-            <CardTitle className={cn('font-serif font-bold tracking-tight truncate', isCompact ? 'text-base' : 'text-xl')}>
-              {hustle.hustle_name || 'Untitled Hustle'}
-            </CardTitle>
+    <div style={{
+      borderRadius: '14px',
+      backgroundColor: 'rgba(255,255,255,0.75)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid rgba(255,255,255,0.2)',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease',
+    }}>
+      <div style={{ padding: isCompact ? '16px' : '24px', paddingBottom: isCompact ? '12px' : '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 10px',
+              borderRadius: '9999px',
+              fontSize: '12px',
+              fontWeight: 600,
+              backgroundColor: 'rgba(234, 88, 12, 0.1)',
+              color: '#ea580c',
+              flexShrink: 0,
+            }}>#{total - index}</span>
+            <h3 style={{
+              fontFamily: 'Georgia, serif',
+              fontWeight: 700,
+              fontSize: isCompact ? '16px' : '20px',
+              letterSpacing: '-0.02em',
+              color: '#292524',
+              margin: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>{hustle.hustle_name || 'Untitled Hustle'}</h3>
           </div>
-          {isCompact && (
-            <Button variant="ghost" size="sm" onClick={onToggle} className="shrink-0 h-8 w-8 p-0">
-              {expanded ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
-            </Button>
+          {isCompact && onToggle && (
+            <button
+              onClick={onToggle}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                color: '#78716c',
+                flexShrink: 0,
+              }}
+            >
+              {expanded ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
           )}
         </div>
         {isCompact && !expanded && (
-          <div className="flex items-center gap-3 mt-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
             <StarRating rating={hustle.difficulty_rating} />
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-xs text-muted-foreground font-medium">
+            <span style={{ color: '#d6d3d1' }}>|</span>
+            <span style={{ fontSize: '12px', color: '#78716c', fontWeight: 500 }}>
               {formatCurrency(hustle.monthly_income_min)} - {formatCurrency(hustle.monthly_income_max)}/mo
             </span>
           </div>
         )}
-      </CardHeader>
+      </div>
       {(!isCompact || expanded) && (
-        <CardContent className={cn('pt-0 space-y-5', isCompact ? 'p-4' : 'p-6')}>
-          <div className="text-foreground/80">{renderMarkdown(hustle.description || '')}</div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">Difficulty</p>
+        <div style={{ padding: isCompact ? '0 16px 16px' : '0 24px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <p style={{ fontSize: '14px', lineHeight: '1.6', color: 'rgba(41,37,36,0.8)', margin: 0 }}>{hustle.description}</p>
+          <div>
+            <p style={{ fontSize: '11px', color: '#78716c', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>Difficulty</p>
             <StarRating rating={hustle.difficulty_rating} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <StatPill icon={<FiDollarSign className="w-5 h-5" />} label="Startup Cost" value={`${formatCurrency(hustle.startup_cost_min)} - ${formatCurrency(hustle.startup_cost_max)}`} />
-            <StatPill icon={<FiTrendingUp className="w-5 h-5" />} label="Monthly Income" value={`${formatCurrency(hustle.monthly_income_min)} - ${formatCurrency(hustle.monthly_income_max)}/mo`} />
-          </div>
-        </CardContent>
-      )}
-    </Card>
-  )
-}
-
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false, error: '' }
-  }
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error: error.message }
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-          <div className="text-center p-8 max-w-md">
-            <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4 text-sm">{this.state.error}</p>
-            <button onClick={() => this.setState({ hasError: false, error: '' })} className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm">Try again</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <StatPill icon={<FiDollarSign style={{ width: '18px', height: '18px' }} />} label="Startup Cost" value={`${formatCurrency(hustle.startup_cost_min)} - ${formatCurrency(hustle.startup_cost_max)}`} />
+            <StatPill icon={<FiTrendingUp style={{ width: '18px', height: '18px' }} />} label="Monthly Income" value={`${formatCurrency(hustle.monthly_income_min)} - ${formatCurrency(hustle.monthly_income_max)}/mo`} />
           </div>
         </div>
-      )
-    }
-    return this.props.children
-  }
+      )}
+    </div>
+  )
 }
 
 export default function Page() {
@@ -251,18 +236,14 @@ export default function Page() {
   const [hustles, setHustles] = useState<HustleData[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showSample, setShowSample] = useState(false)
   const [expandedHistory, setExpandedHistory] = useState<number | null>(null)
-  const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
   const sessionIdRef = useRef<string>(generateId())
 
   const difficultyLabel = getDifficultyLabel(difficulty)
-  const displayHustles = showSample ? SAMPLE_HUSTLES : hustles
 
   const handleGenerate = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setActiveAgentId(AGENT_ID)
     try {
       const message = `Generate a unique AI hustle idea for difficulty level: ${difficultyLabel} (${difficulty}/100). Make sure it's different from any previous hustles.`
       const result = await callAIAgent(message, AGENT_ID, { session_id: sessionIdRef.current })
@@ -280,7 +261,6 @@ export default function Page() {
       setError(err instanceof Error ? err.message : 'Network error. Please check your connection.')
     } finally {
       setLoading(false)
-      setActiveAgentId(null)
     }
   }, [difficulty, difficultyLabel])
 
@@ -289,150 +269,326 @@ export default function Page() {
     setExpandedHistory(null)
   }
 
-  const latestHustle = displayHustles.length > 0 ? displayHustles[0] : null
-  const historyHustles = displayHustles.length > 1 ? displayHustles.slice(1) : []
+  const latestHustle = hustles.length > 0 ? hustles[0] : null
+  const historyHustles = hustles.length > 1 ? hustles.slice(1) : []
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(30,50%,97%)] via-[hsl(20,45%,95%)] to-[hsl(40,40%,96%)]">
-        <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12 space-y-8" style={{ letterSpacing: '-0.01em', lineHeight: '1.55' }}>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+        .slider-input::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #ea580c;
+          cursor: pointer;
+          border: 3px solid white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .slider-input::-moz-range-thumb {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #ea580c;
+          cursor: pointer;
+          border: 3px solid white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .slider-input {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 8px;
+          border-radius: 4px;
+          outline: none;
+          transition: background 0.15s ease;
+        }
+        .gen-btn {
+          width: 100%;
+          height: 48px;
+          border: none;
+          border-radius: 12px;
+          background: #ea580c;
+          color: white;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 6px -1px rgba(234,88,12,0.25);
+        }
+        .gen-btn:hover { background: #dc5a09; transform: translateY(-1px); box-shadow: 0 6px 12px -2px rgba(234,88,12,0.3); }
+        .gen-btn:active { transform: scale(0.98); }
+        .gen-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+      `}</style>
+
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, hsl(30,50%,97%) 0%, hsl(20,45%,95%) 35%, hsl(40,40%,96%) 70%, hsl(15,35%,97%) 100%)',
+      }}>
+        <div style={{
+          maxWidth: '640px',
+          margin: '0 auto',
+          padding: '32px 16px 48px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          letterSpacing: '-0.01em',
+          lineHeight: '1.55',
+        }}>
 
           {/* Header */}
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary">
-                <FiZap className="w-6 h-6" />
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                color: '#ea580c',
+              }}>
+                <FiZap style={{ width: '24px', height: '24px' }} />
               </div>
-              <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground tracking-tight">AI Hustle Generator</h1>
+              <h1 style={{
+                fontFamily: 'Georgia, serif',
+                fontSize: '32px',
+                fontWeight: 700,
+                color: '#292524',
+                letterSpacing: '-0.02em',
+                margin: 0,
+              }}>AI Hustle Generator</h1>
             </div>
-            <p className="text-muted-foreground text-sm font-medium">Discover AI-powered side hustle ideas tailored to your comfort level</p>
+            <p style={{ fontSize: '14px', color: '#78716c', fontWeight: 500, margin: 0 }}>
+              Discover AI-powered side hustle ideas tailored to your comfort level
+            </p>
           </div>
 
-          {/* Sample Data Toggle */}
-          <div className="flex items-center justify-end gap-2">
-            <Label htmlFor="sample-toggle" className="text-xs text-muted-foreground font-medium cursor-pointer">Sample Data</Label>
-            <Switch id="sample-toggle" checked={showSample} onCheckedChange={setShowSample} />
-          </div>
+          {/* Difficulty Slider Card */}
+          <div style={{
+            borderRadius: '14px',
+            backgroundColor: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 600, color: '#292524', margin: 0 }}>Select Difficulty</h2>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '4px 14px',
+                borderRadius: '9999px',
+                fontSize: '14px',
+                fontWeight: 600,
+                border: '2px solid',
+                borderColor: getDifficultyColor(difficulty),
+                color: getDifficultyColor(difficulty),
+              }}>{difficultyLabel}</span>
+            </div>
 
-          {/* Difficulty Slider */}
-          <Card className="backdrop-blur-[16px] bg-white/75 border border-white/20 shadow-lg">
-            <CardContent className="p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-serif text-lg font-semibold text-foreground">Select Difficulty</h2>
-                <Badge variant="outline" className={cn('text-sm font-semibold px-3 py-1 border-2', getDifficultyColor(difficulty))}>
-                  {difficultyLabel}
-                </Badge>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                step={1}
+                value={difficulty}
+                onChange={(e) => setDifficulty(Number(e.target.value))}
+                className="slider-input"
+                style={{
+                  background: `linear-gradient(to right, #ea580c 0%, #ea580c ${(difficulty - 1) / 99 * 100}%, #e7e5e4 ${(difficulty - 1) / 99 * 100}%, #e7e5e4 100%)`,
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#78716c', fontWeight: 500 }}>
+                <span>Easy</span>
+                <span>Medium</span>
+                <span>Hard</span>
               </div>
-              <div className="space-y-3">
-                <Slider min={1} max={100} step={1} value={[difficulty]} onValueChange={(val) => setDifficulty(val[0] ?? 50)} className="w-full" />
-                <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                  <span>Easy</span>
-                  <span>Medium</span>
-                  <span>Hard</span>
-                </div>
-              </div>
-              <Button onClick={handleGenerate} disabled={loading || showSample} className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]" size="lg">
-                {loading ? (
-                  <span className="flex items-center gap-2"><FiRefreshCw className="w-5 h-5 animate-spin" /> Generating...</span>
-                ) : (
-                  <span className="flex items-center gap-2"><FiZap className="w-5 h-5" /> Generate Hustle</span>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="gen-btn"
+            >
+              {loading ? (
+                <><FiRefreshCw style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> Generating...</>
+              ) : (
+                <><FiZap style={{ width: '20px', height: '20px' }} /> Generate Hustle</>
+              )}
+            </button>
+          </div>
 
           {/* Error Display */}
           {error && (
-            <Card className="border-destructive/50 bg-destructive/5 backdrop-blur-[16px]">
-              <CardContent className="p-4 flex items-start gap-3">
-                <FiAlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-destructive font-medium">{error}</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleGenerate} className="shrink-0 text-xs border-destructive/30 text-destructive hover:bg-destructive/10">
-                  <FiRefreshCw className="w-3.5 h-3.5 mr-1" /> Retry
-                </Button>
-              </CardContent>
-            </Card>
+            <div style={{
+              borderRadius: '14px',
+              border: '1px solid rgba(239,68,68,0.3)',
+              backgroundColor: 'rgba(239,68,68,0.05)',
+              backdropFilter: 'blur(16px)',
+              padding: '16px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+            }}>
+              <FiAlertCircle style={{ width: '20px', height: '20px', color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+              <p style={{ flex: 1, fontSize: '14px', color: '#ef4444', fontWeight: 500, margin: 0 }}>{error}</p>
+              <button
+                onClick={handleGenerate}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  backgroundColor: 'transparent',
+                  color: '#ef4444',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <FiRefreshCw style={{ width: '14px', height: '14px' }} /> Retry
+              </button>
+            </div>
           )}
 
           {/* Loading Skeleton */}
-          {loading && <LoadingSkeleton />}
+          {loading && <SkeletonLoader />}
 
           {/* Empty State */}
           {!loading && !latestHustle && !error && (
-            <Card className="backdrop-blur-[16px] bg-white/75 border border-white/20 shadow-lg">
-              <CardContent className="p-8 sm:p-12 text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <FiZap className="w-8 h-8 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-serif text-lg font-semibold text-foreground">Ready to discover your next hustle?</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">Slide to your comfort level and hit Generate! Each idea comes with startup costs, income potential, and difficulty ratings.</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div style={{
+              borderRadius: '14px',
+              backgroundColor: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+              padding: '48px 24px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px',
+            }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <FiZap style={{ width: '32px', height: '32px', color: '#ea580c' }} />
+              </div>
+              <div>
+                <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 600, color: '#292524', margin: '0 0 8px' }}>Ready to discover your next hustle?</h3>
+                <p style={{ fontSize: '14px', color: '#78716c', maxWidth: '340px', margin: '0 auto' }}>
+                  Slide to your comfort level and hit Generate! Each idea comes with startup costs, income potential, and difficulty ratings.
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Latest Hustle */}
           {!loading && latestHustle && (
-            <div className="space-y-2">
-              <h2 className="font-serif text-lg font-semibold text-foreground">Latest Hustle</h2>
-              <HustleCard hustle={latestHustle} index={0} total={displayHustles.length} />
+            <div className="fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 600, color: '#292524', margin: 0 }}>Latest Hustle</h2>
+              <HustleCard hustle={latestHustle} index={0} total={hustles.length} />
             </div>
           )}
 
           {/* History */}
           {historyHustles.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="font-serif text-lg font-semibold text-foreground">History ({historyHustles.length})</h2>
-                {!showSample && (
-                  <Button variant="ghost" size="sm" onClick={handleClearHistory} className="text-xs text-muted-foreground hover:text-destructive">
-                    <FiTrash2 className="w-3.5 h-3.5 mr-1" /> Clear
-                  </Button>
-                )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 600, color: '#292524', margin: 0 }}>
+                  History ({historyHustles.length})
+                </h2>
+                <button
+                  onClick={handleClearHistory}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#78716c',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <FiTrash2 style={{ width: '14px', height: '14px' }} /> Clear
+                </button>
               </div>
-              <ScrollArea className="max-h-[500px]">
-                <div className="space-y-3 pr-2">
-                  {historyHustles.map((hustle, i) => (
-                    <HustleCard
-                      key={`history-${i}`}
-                      hustle={hustle}
-                      index={i + 1}
-                      total={displayHustles.length}
-                      expanded={expandedHistory === i}
-                      onToggle={() => setExpandedHistory(expandedHistory === i ? null : i)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+              <div style={{ maxHeight: '500px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                {historyHustles.map((hustle, i) => (
+                  <HustleCard
+                    key={`history-${i}`}
+                    hustle={hustle}
+                    index={i + 1}
+                    total={hustles.length}
+                    isCompact
+                    expanded={expandedHistory === i}
+                    onToggle={() => setExpandedHistory(expandedHistory === i ? null : i)}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
           {/* Agent Info */}
-          <Card className="backdrop-blur-[16px] bg-white/50 border border-white/15 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn('w-2 h-2 rounded-full shrink-0', activeAgentId ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30')} />
-                <div className="flex items-center gap-2 min-w-0">
-                  <FiActivity className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  <span className="text-xs text-muted-foreground font-medium truncate">
-                    Hustle Generator Agent
-                  </span>
-                  <span className="text-xs text-muted-foreground/60">|</span>
-                  <span className="text-xs text-muted-foreground/60 truncate">
-                    {activeAgentId ? 'Generating...' : 'Ready'}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div style={{
+            borderRadius: '14px',
+            backgroundColor: 'rgba(255,255,255,0.5)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            padding: '14px 16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: loading ? '#22c55e' : '#a8a29e',
+                flexShrink: 0,
+                ...(loading ? { animation: 'pulse 1.5s infinite' } : {}),
+              }} />
+              <FiActivity style={{ width: '14px', height: '14px', color: '#78716c', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', color: '#78716c', fontWeight: 500 }}>Hustle Generator Agent</span>
+              <span style={{ fontSize: '12px', color: '#a8a29e' }}>|</span>
+              <span style={{ fontSize: '12px', color: '#a8a29e' }}>{loading ? 'Generating...' : 'Ready'}</span>
+            </div>
+          </div>
 
         </div>
       </div>
-    </ErrorBoundary>
+    </>
   )
 }
