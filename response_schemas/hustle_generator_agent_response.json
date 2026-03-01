@@ -1,0 +1,26 @@
+{
+  "agent_name": "Hustle Generator Agent",
+  "agent_id": "69a387d25d446100f182a997",
+  "description": "Generates unique AI-related side hustle ideas based on the user-selected difficulty level. Returns hustle name, description, 1-5 star difficulty rating, estimated startup costs, and potential monthly income.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "hustle_name": "string",
+    "description": "string",
+    "difficulty_rating": "number",
+    "startup_cost_min": "number",
+    "startup_cost_max": "number",
+    "monthly_income_min": "number",
+    "monthly_income_max": "number"
+  },
+  "example_response": {
+    "hustle_name": "Catchy name for the AI side hustle",
+    "description": "2-3 sentence overview of the hustle",
+    "difficulty_rating": 0,
+    "startup_cost_min": 0,
+    "startup_cost_max": 0,
+    "monthly_income_min": 0,
+    "monthly_income_max": 0
+  }
+}

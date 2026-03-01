@@ -1,0 +1,25 @@
+{
+  "agent_name": "Hustle Generator Agent",
+  "agent_id": "69a387d25d446100f182a997",
+  "agent_type": "json",
+  "accessor": "json",
+  "has_module_outputs": false,
+  "response_schema": {
+    "hustle_name": "string",
+    "description": "string",
+    "difficulty_rating": "number",
+    "startup_cost_min": "number",
+    "startup_cost_max": "number",
+    "monthly_income_min": "number",
+    "monthly_income_max": "number"
+  },
+  "sample_response": {
+    "hustle_name": "AI Content Repurposing Service",
+    "description": "Transform long-form content like podcasts and webinars into social media posts, blog articles, and newsletters using AI tools. Low barrier to entry with high demand from content creators and businesses.",
+    "difficulty_rating": 2,
+    "startup_cost_min": 50,
+    "startup_cost_max": 200,
+    "monthly_income_min": 800,
+    "monthly_income_max": 2500
+  }
+}
